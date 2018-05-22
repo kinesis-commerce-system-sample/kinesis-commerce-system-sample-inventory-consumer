@@ -1,0 +1,14 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: yes
+  become: yes
+  roles:
+    - java_pg_deploy
+    - java_pg_cleanup
+  vars:
+    deploy_base: /var/app/deploy
+    app_base: /opt
+    app_name: kinesis-commerce-system-sample-inventory-consumer
+    app_user: ec2-user
+    app_group: ec2-user

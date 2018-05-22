@@ -1,0 +1,20 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /var/app/deploy
+hooks:
+  BeforeInstall:
+    - location: unzip-codebuild-artifact.sh
+      timeout: 300
+      runas: root
+    - location: deployment/codedeploy/scripts/before_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: deployment/codedeploy/scripts/setup_application.sh
+      timeout: 300
+      runas: root
+    - location: deployment/codedeploy/scripts/restart_application.sh
+      timeout: 120
+      runas: ec2-user

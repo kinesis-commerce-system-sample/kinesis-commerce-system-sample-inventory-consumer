@@ -1,0 +1,9 @@
+---
+
+- name: check cleanup directory
+  stat: path={{ app_base }}/{{ app_name }}/dist
+  register: dir
+
+- name: cleanup old application
+  script: keepnewest.sh {{ app_base }}/{{ app_name }}/dist 4
+  when: dir.stat.exists

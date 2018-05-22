@@ -1,0 +1,42 @@
+spring:
+  profiles: aws_verification
+
+server:
+  port: -1
+
+log:
+  path:
+    all:
+      name: app.log
+      dir:
+        current: log
+        history: log/history
+      histsize: 7
+    error:
+      name: error.log
+      dir:
+        current: log
+        history: log/history
+      histsize: 7
+  level:
+    app: DEBUG
+    root: INFO
+
+application:
+  kinesis:
+    order:
+      stream-name: kinesis-commerce-system-sample-order-stream
+      application-name: kinesis-commerce-system-sample-order-consumer-v1
+      region-name: ap-northeast-1
+      idle-time-between-reads-in-millis: 250
+    purchase:
+      stream-name: kinesis-commerce-system-sample-purchase-stream
+      application-name: kinesis-commerce-system-sample-purchase-consumer-v1
+      region-name: ap-northeast-1
+      idle-time-between-reads-in-millis: 250
+    inventory:
+      stream-name: kinesis-commerce-system-sample-inventory-stream
+      application-name: kinesis-commerce-system-sample-inventory-consumer-v1
+      region-name: ap-northeast-1
+      idle-time-between-reads-in-millis: 250
+

@@ -1,0 +1,2 @@
+include ':kinesis-commerce-system-sample-common'
+project(':kinesis-commerce-system-sample-common').projectDir = new File(settingsDir, '../kinesis-commerce-system-sample-common')

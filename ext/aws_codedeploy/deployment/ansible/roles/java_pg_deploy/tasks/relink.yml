@@ -1,0 +1,16 @@
+---
+
+- name: get deployment dirname
+  local_action: command basename {{ lookup('pipe', 'ls -1d {{ deploy_base }}/{{ app_name }}-*') }}
+  become: no
+  register: deployment_dirname
+
+# relink current distribution
+- name: relink log directory
+  file: src={{ app_base }}/{{ app_name }}/log dest={{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/log state=link force=yes
+- name: relink run directory
+  file: src={{ app_base }}/{{ app_name }}/run dest={{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/run state=link force=yes
+- name: relink data directory
+  file: src={{ app_base }}/{{ app_name }}/data dest={{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/data state=link force=yes
+- name: relink current distribution
+  file: src={{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }} dest={{ app_base }}/{{ app_name }}/dist/current state=link force=yes

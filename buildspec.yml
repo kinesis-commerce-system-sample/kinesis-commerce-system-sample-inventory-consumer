@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - ./gradlew -Penv=aws_verification clean distZip
+  post_build:
+    commands:
+      - mv build/distributions/kinesis-commerce-system-sample-inventory-consumer-*.zip build/distributions/kinesis-commerce-system-sample-inventory-consumer.zip
+      - cp ext/aws_codedeploy/appspec.yml build/distributions/appspec.yml
+      - cp ext/aws_codedeploy/deployment/codedeploy/scripts/unzip-codebuild-artifact.sh build/distributions/unzip-codebuild-artifact.sh
+artifacts:
+  files:
+    - build/distributions/*
+  discard-paths: yes

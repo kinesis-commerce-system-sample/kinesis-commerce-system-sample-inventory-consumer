@@ -1,0 +1,124 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.10.RELEASE'
+		jdkVersion = 1.8
+		app_basename = 'kinesis-commerce-system-sample-inventory-consumer'
+		app_version = '1.0.0-SNAPSHOT'
+		app_group_id = 'com.example.kinesiscommercesystemsample'
+	}
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		jcenter()
+		maven { url "http://repo.spring.io/plugins-release" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+springBoot {
+	mainClass = "com.example.kinesiscommercesystemsample.inventory.consumer.InventoryConsumerApplication"
+}
+
+jar.baseName = app_basename
+version = app_version
+group = app_group_id
+
+sourceCompatibility = jdkVersion
+targetCompatibility = jdkVersion
+
+startScripts {
+	enabled = false
+}
+
+distZip {
+	baseName = "${app_basename}"
+	if (project.hasProperty('env')) {
+		appendix = new Date().format("yyyyMMdd'T'HHmmss") + "-" + env
+	} else {
+		appendix = new Date().format("yyyyMMdd'T'HHmmss")
+	}
+}
+def conf = file("${buildDir}/conf")
+conf.mkdirs()
+if (project.hasProperty('env')) {
+	applicationDistribution.from("ext/distributions/${env}/conf") {
+		into "conf"
+	}
+}
+// aws codedeploy
+if (project.hasProperty('env') && project.getProperty('env') == 'aws_verification') {
+	applicationDistribution.from("ext/aws_codedeploy/deployment") {
+		into "/deployment"
+	}
+	applicationDistribution.from("ext/aws_codedeploy/appspec.yml") {
+		into "/"
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+// for Doma 2
+// JavaクラスとSQLファイルの出力先ディレクトリを同じにする
+processResources.destinationDir = compileJava.destinationDir
+// コンパイルより前にSQLファイルを出力先ディレクトリにコピーするために依存関係を逆転する
+compileJava.dependsOn processResources
+
+// for Doma 2
+allprojects {
+	apply plugin: 'idea'
+	idea {
+		module {
+			outputDir file('build/classes/main')
+			testOutputDir file('build/classes/test')
+		}
+	}
+	if(project.convention.findPlugin(JavaPluginConvention)) {
+		// Change the output directory for the main and test source sets back to the old path
+		sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+		sourceSets.test.output.classesDir = new File(buildDir, "classes/test")
+	}
+}
+
+dependencies {
+	compile("org.springframework.boot:spring-boot-starter:${springBootVersion}")
+	compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+		exclude module: "spring-boot-starter-tomcat"
+	}
+	compile("org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}")
+	compile("org.springframework.boot:spring-boot-starter-jetty:${springBootVersion}")
+	compile("org.springframework.boot:spring-boot-starter-jdbc:${springBootVersion}")
+
+	testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+
+	// doma exclude springframework
+	compile("org.seasar.doma.boot:doma-spring-boot-starter:1.1.1") {
+		exclude group: "org.springframework.boot"
+	}
+
+	// postgres
+	runtime("org.postgresql:postgresql:9.4-1206-jdbc42")
+
+	// lombok
+	compile("org.projectlombok:lombok:1.16.18")
+
+	// jackson
+	compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+	compile("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+	compile("com.fasterxml.jackson.dataformat:jackson-dataformat-csv")
+
+	// modelmapper
+	compile("org.modelmapper:modelmapper:0.7.5")
+
+	// kinesis-commerce-system-sample
+	compile project(':kinesis-commerce-system-sample-common')
+}

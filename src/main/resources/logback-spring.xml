@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty scope="context" name="env" source="spring.profiles"/>
+
+    <springProperty scope="context" name="log_path_all_name" source="log.path.all.name"/>
+    <springProperty scope="context" name="log_path_all_dir_current" source="log.path.all.dir.current"/>
+    <springProperty scope="context" name="log_path_all_dir_history" source="log.path.all.dir.history"/>
+    <springProperty scope="context" name="log_path_all_histsize" source="log.path.all.histsize"/>
+
+    <springProperty scope="context" name="log_path_error_name" source="log.path.error.name"/>
+    <springProperty scope="context" name="log_path_error_dir_current" source="log.path.error.dir.current"/>
+    <springProperty scope="context" name="log_path_error_dir_history" source="log.path.error.dir.history"/>
+    <springProperty scope="context" name="log_path_error_histsize" source="log.path.error.histsize"/>
+
+    <springProperty scope="context" name="log_level" source="log.level.app"/>
+    <springProperty scope="context" name="root_log_level" source="log.level.root"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %thread %logger \(%file:%line\) - ${env} - ${HOSTNAME} - %X{Request-ID} - %X{X-Track-Id} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_RAW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_path_all_dir_current}/${log_path_all_name}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_path_all_dir_history}/${log_path_all_name}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>${log_path_all_histsize}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %thread %logger \(%file:%line\) - ${env} - ${HOSTNAME} - %X{Request-ID} - %X{X-Track-Id} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_LOGSTASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_path_all_dir_current}/${log_path_all_name}.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_path_all_dir_history}/${log_path_all_name}.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>${log_path_all_histsize}</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"env":"${env}"}</customFields>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_ERROR_LOGSTASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <file>${log_path_error_dir_current}/${log_path_error_name}.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_path_error_dir_history}/${log_path_error_name}.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>${log_path_error_histsize}</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"env":"${env}"}</customFields>
+        </encoder>
+    </appender>
+
+    <logger name="org.seasar.doma" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <logger name="com.example.kinesiscommercesystemsample" additivity="false">
+        <level value="${log_level}"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE_RAW"/>
+        <appender-ref ref="FILE_LOGSTASH"/>
+        <appender-ref ref="FILE_ERROR_LOGSTASH"/>
+    </logger>
+
+    <root level="${root_log_level}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE_RAW"/>
+        <appender-ref ref="FILE_LOGSTASH"/>
+        <appender-ref ref="FILE_ERROR_LOGSTASH"/>
+    </root>
+
+    <jmxConfigurator/>
+</configuration>

@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    default: local
+    active: local
+
+security:
+  basic:
+    enabled: false
+
+doma:
+    dialect: postgres
+    # 小文字のスネークケースに変換する（firstName → first_name）
+    naming: SNAKE_LOWER_CASE
+    # バルクインサート・アップデートのサイズ
+    batch-size: 1000

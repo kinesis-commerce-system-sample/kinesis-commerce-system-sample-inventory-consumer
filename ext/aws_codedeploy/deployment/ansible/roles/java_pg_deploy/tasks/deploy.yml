@@ -1,0 +1,38 @@
+---
+
+- name: get deployment dirname
+  local_action: command basename {{ lookup('pipe', 'ls -1d {{ deploy_base }}/{{ app_name }}-*') }}
+  become: no
+  register: deployment_dirname
+
+# deploy
+- name: create app root directory
+  file: dest={{ app_base }} state=directory
+- name: create app directory
+  file: dest={{ app_base }}/{{ app_name }} state=directory owner={{ app_user }} group={{ app_group }} mode=0755
+- name: create app log directory
+  file: dest={{ app_base }}/{{ app_name }}/log state=directory owner={{ app_user }} group={{ app_group }} mode=0755
+- name: create app run directory
+  file: dest={{ app_base }}/{{ app_name }}/run state=directory owner={{ app_user }} group={{ app_group }} mode=0755
+- name: create app data directory
+  file: dest={{ app_base }}/{{ app_name }}/data state=directory owner={{ app_user }} group={{ app_group }} mode=0755
+- name: create app dist directory
+  file: dest={{ app_base }}/{{ app_name }}/dist state=directory owner={{ app_user }} group={{ app_group }} mode=0755
+
+- name: copy deployment distribution
+  synchronize: src={{ deploy_base }}/{{ deployment_dirname.stdout }} dest={{ app_base }}/{{ app_name }}/dist
+
+- name: chmod bin files (0700)
+  shell: chmod 700 {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/bin/*
+- name: chown bin files ({{ app_user }}:{{ app_group }})
+  shell: chown {{ app_user }}:{{ app_group }} {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/bin/*
+
+- name: chmod conf files (0700)
+  shell: chmod 700 {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/conf/*
+- name: chown conf files ({{ app_user }}:{{ app_group }})
+  shell: chown {{ app_user }}:{{ app_group }} {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/conf/*
+
+- name: chmod lib files (0600)
+  shell: chmod 600 {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/lib/*
+- name: chown lib files ({{ app_user }}:{{ app_group }})
+  shell: chown {{ app_user }}:{{ app_group }} {{ app_base }}/{{ app_name }}/dist/{{ deployment_dirname.stdout }}/lib/*
